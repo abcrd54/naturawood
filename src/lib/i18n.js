@@ -108,7 +108,7 @@ export const translations = {
       copy:
         'Untuk ready stock maupun custom project, hubungi Naturawood agar diskusi ukuran, finishing, resin, dan kebutuhan ruang bisa diarahkan dengan lebih tepat.',
       items: [
-        { label: 'WhatsApp', value: '+62 812-3456-7890' },
+        { label: 'WhatsApp', value: '+62 821-3475-8827' },
         { label: 'Email', value: 'hello@naturawoodtables.com' },
         { label: 'Instagram', value: '@naturawood.id' },
         { label: 'Workshop', value: 'Jepara, Jawa Tengah, Indonesia' },
@@ -279,7 +279,7 @@ export const translations = {
       copy:
         'For ready stock and custom projects alike, contact Naturawood so dimensions, finish, resin, and space requirements can be discussed more precisely.',
       items: [
-        { label: 'WhatsApp', value: '+62 812-3456-7890' },
+        { label: 'WhatsApp', value: '+62 821-3475-8827' },
         { label: 'Email', value: 'hello@naturawoodtables.com' },
         { label: 'Instagram', value: '@naturawood.id' },
         { label: 'Workshop', value: 'Jepara, Central Java, Indonesia' },
