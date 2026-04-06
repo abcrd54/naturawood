@@ -1,6 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Globe2, ImagePlus, LogIn, LogOut, Plus, RefreshCcw, Save, Trash2 } from 'lucide-react'
+import {
+  Globe2,
+  ImagePlus,
+  Images,
+  LayoutDashboard,
+  LogIn,
+  LogOut,
+  Package2,
+  Plus,
+  RefreshCcw,
+  Save,
+  Trash2,
+} from 'lucide-react'
 import { supabase, hasSupabaseEnv } from '../lib/supabase'
 import {
   fetchProducts,
@@ -63,11 +75,34 @@ function Field({ label, children }) {
 
 function Notice({ children }) {
   if (!children) return null
-  return <div className="mb-6 rounded-[1.25rem] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-700">{children}</div>
+
+  return (
+    <div className="mb-6 rounded-[1.25rem] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-700">
+      {children}
+    </div>
+  )
+}
+
+function SidebarButton({ active, icon: Icon, label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium transition ${
+        active
+          ? 'bg-white text-gray-900 shadow-sm'
+          : 'text-white/75 hover:bg-white/10 hover:text-white'
+      }`}
+    >
+      <Icon className="h-5 w-5" />
+      <span>{label}</span>
+    </button>
+  )
 }
 
 export default function AdminPanelPage() {
   const { lang, toggleLang, t } = useLang()
+
   const [session, setSession] = useState(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -79,10 +114,17 @@ export default function AdminPanelPage() {
   const [notice, setNotice] = useState('')
   const [uploadingSlideId, setUploadingSlideId] = useState('')
   const [uploadingProductImage, setUploadingProductImage] = useState('')
+  const [activeSection, setActiveSection] = useState('products')
 
   const totalItems = useMemo(() => items.length, [items])
-  const totalReady = useMemo(() => items.filter((item) => item.status === 'ready').length, [items])
-  const totalSoldOut = useMemo(() => items.filter((item) => item.status === 'sold_out').length, [items])
+  const totalReady = useMemo(
+    () => items.filter((item) => item.status === 'ready').length,
+    [items]
+  )
+  const totalSoldOut = useMemo(
+    () => items.filter((item) => item.status === 'sold_out').length,
+    [items]
+  )
   const totalSlides = useMemo(() => slides.length, [slides])
 
   useEffect(() => {
@@ -115,8 +157,13 @@ export default function AdminPanelPage() {
     }
 
     setLoading(true)
+
     try {
-      const [productsData, slidesData] = await Promise.all([fetchProducts(), fetchHeroSlidesAdmin()])
+      const [productsData, slidesData] = await Promise.all([
+        fetchProducts(),
+        fetchHeroSlidesAdmin(),
+      ])
+
       setItems(productsData)
       setSlides(slidesData)
       setNotice('')
@@ -133,11 +180,15 @@ export default function AdminPanelPage() {
   }, [session])
 
   const updateItemField = (id, field, value) => {
-    setItems((current) => current.map((item) => (item.id === id ? { ...item, [field]: value } : item)))
+    setItems((current) =>
+      current.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    )
   }
 
   const updateSlideField = (id, field, value) => {
-    setSlides((current) => current.map((slide) => (slide.id === id ? { ...slide, [field]: value } : slide)))
+    setSlides((current) =>
+      current.map((slide) => (slide.id === id ? { ...slide, [field]: value } : slide))
+    )
   }
 
   const addItem = () => setItems((current) => [...current, createEmptyItem(current.length)])
@@ -182,6 +233,7 @@ export default function AdminPanelPage() {
     setLoginError('')
 
     const { error } = await supabase.auth.signInWithPassword({ email, password })
+
     if (error) {
       setLoginError(error.message)
       return
@@ -212,6 +264,7 @@ export default function AdminPanelPage() {
 
     const uploadKey = `${itemId}-${variant}`
     setUploadingProductImage(uploadKey)
+
     try {
       const publicUrl = await uploadProductImage(file, variant)
       updateItemField(itemId, variant, publicUrl)
@@ -228,6 +281,7 @@ export default function AdminPanelPage() {
     if (!file) return
 
     setUploadingSlideId(slideId)
+
     try {
       const publicUrl = await uploadHeroSlideImage(file)
       updateSlideField(slideId, 'image', publicUrl)
@@ -242,10 +296,12 @@ export default function AdminPanelPage() {
 
   const handleSave = async () => {
     setSaving(true)
+
     try {
       for (let index = 0; index < items.length; index += 1) {
         const item = items[index]
         const payload = { ...item, sortOrder: index + 1 }
+
         if (item.isNew) await insertProduct(payload)
         else await updateProduct(item.id, payload)
       }
@@ -277,12 +333,19 @@ export default function AdminPanelPage() {
       <div className="min-h-screen bg-gray-100 px-6 py-10 text-gray-900 md:px-10">
         <div className="mx-auto max-w-3xl rounded-[2rem] border border-red-200 bg-white p-8 shadow-[0_20px_80px_rgba(15,23,42,0.05)]">
           <div className="flex items-center justify-between gap-4">
-            <h1 className="text-2xl font-medium tracking-tight md:text-4xl">{t.admin.panel}</h1>
-            <Link to="/" className="rounded-full border border-gray-300 px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50">
+            <h1 className="text-2xl font-medium tracking-tight md:text-4xl">
+              {t.admin.panel}
+            </h1>
+            <Link
+              to="/"
+              className="rounded-full border border-gray-300 px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50"
+            >
               {t.admin.backToWebsite}
             </Link>
           </div>
-          <p className="mt-5 text-sm leading-7 text-gray-600">{t.admin.notices.missingEnv}</p>
+          <p className="mt-5 text-sm leading-7 text-gray-600">
+            {t.admin.notices.missingEnv}
+          </p>
         </div>
       </div>
     )
@@ -294,24 +357,59 @@ export default function AdminPanelPage() {
         <div className="mx-auto max-w-xl rounded-[2rem] border border-gray-200 bg-white p-8 shadow-[0_20px_80px_rgba(15,23,42,0.06)]">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-gray-500">{t.admin.panel}</p>
-              <h1 className="mt-3 text-3xl font-medium tracking-tight text-gray-900">Naturawood Admin</h1>
-              <p className="mt-4 text-sm leading-7 text-gray-600">{t.admin.signInHelp}</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-gray-500">
+                {t.admin.panel}
+              </p>
+              <h1 className="mt-3 text-3xl font-medium tracking-tight text-gray-900">
+                Naturawood Admin
+              </h1>
+              <p className="mt-4 text-sm leading-7 text-gray-600">
+                {t.admin.signInHelp}
+              </p>
             </div>
-            <button onClick={toggleLang} className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-50"><Globe2 className="h-4 w-4" />{lang === 'id' ? 'ID / EN' : 'EN / ID'}</button>
+
+            <button
+              onClick={toggleLang}
+              className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-50"
+            >
+              <Globe2 className="h-4 w-4" />
+              {lang === 'id' ? 'ID / EN' : 'EN / ID'}
+            </button>
           </div>
 
           <form onSubmit={handleLogin} className="mt-8 grid gap-4">
             <Field label={t.admin.email}>
-              <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className="rounded-2xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none transition focus:border-gray-900" placeholder="admin@naturawood.com" required />
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                className="rounded-2xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none transition focus:border-gray-900"
+                placeholder="admin@naturawood.com"
+                required
+              />
             </Field>
+
             <Field label={t.admin.password}>
-              <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" className="rounded-2xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none transition focus:border-gray-900" placeholder="••••••••" required />
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                className="rounded-2xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none transition focus:border-gray-900"
+                placeholder="••••••••"
+                required
+              />
             </Field>
 
-            {loginError ? <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{loginError}</div> : null}
+            {loginError ? (
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {loginError}
+              </div>
+            ) : null}
 
-            <button type="submit" className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800">
+            <button
+              type="submit"
+              className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800"
+            >
               <LogIn className="h-4 w-4" />
               {t.admin.signIn}
             </button>
@@ -327,178 +425,569 @@ export default function AdminPanelPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
-      <div className="mx-auto max-w-7xl px-6 py-8 md:px-10">
-        <div className="mb-8 flex flex-col gap-5 rounded-[2rem] border border-gray-200 bg-white p-6 shadow-[0_20px_80px_rgba(15,23,42,0.06)] md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-gray-500">{t.admin.panel}</p>
-            <h1 className="mt-3 text-3xl font-medium tracking-tight text-gray-900 md:text-5xl">Kelola produk & hero slider</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-600">
-              Sekarang slider homepage dan gambar ready stock bisa diatur dari admin panel. Upload gambar ke Supabase Storage, lalu simpan detail produk, title, dan subtitle langsung dari dashboard.
+      <div className="flex min-h-screen">
+        <aside className="hidden w-[280px] shrink-0 bg-[#111827] text-white lg:flex lg:flex-col">
+          <div className="border-b border-white/10 px-6 py-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
+                <LayoutDashboard className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.25em] text-white/45">
+                  Admin Panel
+                </p>
+                <h2 className="mt-1 text-lg font-semibold">Naturawood</h2>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 px-4 py-5">
+            <p className="px-3 pb-3 text-xs uppercase tracking-[0.25em] text-white/40">
+              Menu
             </p>
+
+            <div className="space-y-2">
+              <SidebarButton
+                active={activeSection === 'products'}
+                icon={Package2}
+                label="Produk"
+                onClick={() => setActiveSection('products')}
+              />
+              <SidebarButton
+                active={activeSection === 'slider'}
+                icon={Images}
+                label="Slider"
+                onClick={() => setActiveSection('slider')}
+              />
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <button onClick={toggleLang} className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50"><Globe2 className="h-4 w-4" />{lang === 'id' ? 'ID / EN' : 'EN / ID'}</button>
-            <Link to="/" className="rounded-full border border-gray-300 px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50">{t.admin.backToWebsite}</Link>
-            <button onClick={handleRefresh} className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50"><RefreshCcw className="h-4 w-4" />{t.admin.refresh}</button>
-            <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50"><LogOut className="h-4 w-4" />{t.admin.logout}</button>
-            <button onClick={handleSave} disabled={saving} className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-60"><Save className="h-4 w-4" />{saving ? t.admin.saving : t.admin.save}</button>
+          <div className="border-t border-white/10 p-4">
+            <div className="rounded-2xl bg-white/5 p-4 text-sm text-white/75">
+              <p className="text-xs uppercase tracking-[0.22em] text-white/40">
+                Storage
+              </p>
+              <p className="mt-3 break-all font-medium text-white">{heroSlidesBucket}</p>
+              <p className="mt-2 text-xs text-white/50">
+                Dipakai untuk slider dan ready stock
+              </p>
+            </div>
           </div>
-        </div>
+        </aside>
 
-        <div className="mb-6 grid gap-4 md:grid-cols-5">
-          <div className="rounded-[1.5rem] border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(15,23,42,0.04)]"><p className="text-xs uppercase tracking-[0.25em] text-gray-500">{t.admin.products}</p><p className="mt-3 text-3xl font-medium text-gray-900">{totalItems}</p></div>
-          <div className="rounded-[1.5rem] border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(15,23,42,0.04)]"><p className="text-xs uppercase tracking-[0.25em] text-gray-500">{t.admin.ready}</p><p className="mt-3 text-3xl font-medium text-gray-900">{totalReady}</p></div>
-          <div className="rounded-[1.5rem] border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(15,23,42,0.04)]"><p className="text-xs uppercase tracking-[0.25em] text-gray-500">{t.admin.soldOut}</p><p className="mt-3 text-3xl font-medium text-gray-900">{totalSoldOut}</p></div>
-          <div className="rounded-[1.5rem] border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(15,23,42,0.04)]"><p className="text-xs uppercase tracking-[0.25em] text-gray-500">Hero Slides</p><p className="mt-3 text-3xl font-medium text-gray-900">{totalSlides}</p></div>
-          <div className="rounded-[1.5rem] border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(15,23,42,0.04)]"><p className="text-xs uppercase tracking-[0.25em] text-gray-500">Storage Bucket</p><p className="mt-3 text-lg font-medium text-gray-900">{heroSlidesBucket}</p><p className="mt-2 text-xs text-gray-500">Dipakai untuk slider dan ready stock</p></div>
-        </div>
+        <main className="min-w-0 flex-1">
+          <div className="mx-auto max-w-7xl px-6 py-8 md:px-8 xl:px-10">
+            <div className="mb-8 flex flex-col gap-5 rounded-[2rem] border border-gray-200 bg-white p-6 shadow-[0_20px_80px_rgba(15,23,42,0.06)] md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-gray-500">
+                  {t.admin.panel}
+                </p>
+                <h1 className="mt-3 text-3xl font-medium tracking-tight text-gray-900 md:text-5xl">
+                  {activeSection === 'products' ? 'Kelola produk' : 'Kelola hero slider'}
+                </h1>
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-600">
+                  {activeSection === 'products'
+                    ? 'Kelola ready stock dan sold out langsung dari dashboard. Upload gambar before dan after ke Supabase Storage lalu simpan data produk.'
+                    : 'Kelola hero slider homepage langsung dari dashboard. Upload gambar, ubah title dan subtitle, lalu simpan agar tampil di website.'}
+                </p>
+              </div>
 
-        <Notice>{notice}</Notice>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={toggleLang}
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50"
+                >
+                  <Globe2 className="h-4 w-4" />
+                  {lang === 'id' ? 'ID / EN' : 'EN / ID'}
+                </button>
 
-        {loading ? (
-          <div className="rounded-[2rem] border border-gray-200 bg-white p-8 text-sm text-gray-600 shadow-[0_20px_80px_rgba(15,23,42,0.05)]">Memuat data admin...</div>
-        ) : (
-          <div className="grid gap-8">
-            <section className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-[0_20px_80px_rgba(15,23,42,0.05)]">
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.25em] text-gray-500">Section 01</p>
-                  <h2 className="mt-2 text-2xl font-medium text-gray-900">Ready stock products</h2>
-                  <p className="mt-2 text-sm text-gray-600">URL gambar bisa diisi manual atau upload langsung ke Supabase Storage. Folder produk akan tersimpan di bucket <strong>{productsBucket}</strong>.</p>
-                </div>
-                <button onClick={addItem} className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50">
-                  <Plus className="h-4 w-4" />
-                  {t.admin.addProduct}
+                <Link
+                  to="/"
+                  className="rounded-full border border-gray-300 px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50"
+                >
+                  {t.admin.backToWebsite}
+                </Link>
+
+                <button
+                  onClick={handleRefresh}
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50"
+                >
+                  <RefreshCcw className="h-4 w-4" />
+                  {t.admin.refresh}
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50"
+                >
+                  <LogOut className="h-4 w-4" />
+                  {t.admin.logout}
+                </button>
+
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-60"
+                >
+                  <Save className="h-4 w-4" />
+                  {saving ? t.admin.saving : t.admin.save}
                 </button>
               </div>
+            </div>
 
-              <div className="grid gap-6">
-                {items.map((item, index) => (
-                  <div key={item.id} className="rounded-[2rem] border border-gray-200 bg-gray-50/60 p-6">
-                    <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-[1.5rem] border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(15,23,42,0.04)]">
+                <p className="text-xs uppercase tracking-[0.25em] text-gray-500">
+                  {t.admin.products}
+                </p>
+                <p className="mt-3 text-3xl font-medium text-gray-900">{totalItems}</p>
+              </div>
+
+              <div className="rounded-[1.5rem] border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(15,23,42,0.04)]">
+                <p className="text-xs uppercase tracking-[0.25em] text-gray-500">
+                  {t.admin.ready}
+                </p>
+                <p className="mt-3 text-3xl font-medium text-gray-900">{totalReady}</p>
+              </div>
+
+              <div className="rounded-[1.5rem] border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(15,23,42,0.04)]">
+                <p className="text-xs uppercase tracking-[0.25em] text-gray-500">
+                  {t.admin.soldOut}
+                </p>
+                <p className="mt-3 text-3xl font-medium text-gray-900">{totalSoldOut}</p>
+              </div>
+
+              <div className="rounded-[1.5rem] border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(15,23,42,0.04)]">
+                <p className="text-xs uppercase tracking-[0.25em] text-gray-500">
+                  Hero Slides
+                </p>
+                <p className="mt-3 text-3xl font-medium text-gray-900">{totalSlides}</p>
+              </div>
+            </div>
+
+            <div className="mb-4 flex gap-3 lg:hidden">
+              <button
+                type="button"
+                onClick={() => setActiveSection('products')}
+                className={`rounded-full px-5 py-3 text-sm font-medium transition ${
+                  activeSection === 'products'
+                    ? 'bg-gray-900 text-white'
+                    : 'border border-gray-300 bg-white text-gray-900'
+                }`}
+              >
+                Produk
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveSection('slider')}
+                className={`rounded-full px-5 py-3 text-sm font-medium transition ${
+                  activeSection === 'slider'
+                    ? 'bg-gray-900 text-white'
+                    : 'border border-gray-300 bg-white text-gray-900'
+                }`}
+              >
+                Slider
+              </button>
+            </div>
+
+            <Notice>{notice}</Notice>
+
+            {loading ? (
+              <div className="rounded-[2rem] border border-gray-200 bg-white p-8 text-sm text-gray-600 shadow-[0_20px_80px_rgba(15,23,42,0.05)]">
+                Memuat data admin...
+              </div>
+            ) : (
+              <>
+                {activeSection === 'products' ? (
+                  <section className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-[0_20px_80px_rgba(15,23,42,0.05)]">
+                    <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                       <div>
-                        <p className="text-xs uppercase tracking-[0.25em] text-gray-500">{t.admin.products} #{index + 1}</p>
-                        <h3 className="mt-1 text-xl font-medium text-gray-900">{item.titleId || item.titleEn || item.code}</h3>
+                        <p className="text-xs uppercase tracking-[0.25em] text-gray-500">
+                          Section 01
+                        </p>
+                        <h2 className="mt-2 text-2xl font-medium text-gray-900">
+                          Ready stock products
+                        </h2>
+                        <p className="mt-2 text-sm text-gray-600">
+                          URL gambar bisa diisi manual atau upload langsung ke Supabase
+                          Storage. Folder produk akan tersimpan di bucket{' '}
+                          <strong>{productsBucket}</strong>.
+                        </p>
                       </div>
-                      <button onClick={() => removeItem(item)} className="inline-flex items-center gap-2 rounded-full border border-red-200 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50"><Trash2 className="h-4 w-4" />{t.admin.delete}</button>
+
+                      <button
+                        onClick={addItem}
+                        className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50"
+                      >
+                        <Plus className="h-4 w-4" />
+                        {t.admin.addProduct}
+                      </button>
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                      <Field label={t.admin.code}><input value={item.code} onChange={(e) => updateItemField(item.id, 'code', e.target.value)} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" /></Field>
-                      <Field label={t.admin.titleId}><input value={item.titleId} onChange={(e) => updateItemField(item.id, 'titleId', e.target.value)} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" /></Field>
-                      <Field label={t.admin.titleEn}><input value={item.titleEn} onChange={(e) => updateItemField(item.id, 'titleEn', e.target.value)} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" /></Field>
-                      <Field label={t.admin.size}><input value={item.size} onChange={(e) => updateItemField(item.id, 'size', e.target.value)} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" /></Field>
-                      <Field label={t.admin.conditionId}><textarea value={item.conditionId} onChange={(e) => updateItemField(item.id, 'conditionId', e.target.value)} rows={3} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" /></Field>
-                      <Field label={t.admin.conditionEn}><textarea value={item.conditionEn} onChange={(e) => updateItemField(item.id, 'conditionEn', e.target.value)} rows={3} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" /></Field>
-                      <Field label={t.admin.before}>
-                        <div className="grid gap-3">
-                          <input value={item.before} onChange={(e) => updateItemField(item.id, 'before', e.target.value)} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" />
-                          <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-50">
-                            <ImagePlus className="h-4 w-4" />
-                            {uploadingProductImage === `${item.id}-before` ? 'Uploading...' : 'Upload before image'}
-                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProductImageUpload(item.id, 'before', e.target.files?.[0])} />
-                          </label>
+                    <div className="grid gap-6">
+                      {items.map((item, index) => (
+                        <div
+                          key={item.id}
+                          className="rounded-[2rem] border border-gray-200 bg-gray-50/60 p-6"
+                        >
+                          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.25em] text-gray-500">
+                                {t.admin.products} #{index + 1}
+                              </p>
+                              <h3 className="mt-1 text-xl font-medium text-gray-900">
+                                {item.titleId || item.titleEn || item.code}
+                              </h3>
+                            </div>
+
+                            <button
+                              onClick={() => removeItem(item)}
+                              className="inline-flex items-center gap-2 rounded-full border border-red-200 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              {t.admin.delete}
+                            </button>
+                          </div>
+
+                          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                            <Field label={t.admin.code}>
+                              <input
+                                value={item.code}
+                                onChange={(e) =>
+                                  updateItemField(item.id, 'code', e.target.value)
+                                }
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                              />
+                            </Field>
+
+                            <Field label={t.admin.titleId}>
+                              <input
+                                value={item.titleId}
+                                onChange={(e) =>
+                                  updateItemField(item.id, 'titleId', e.target.value)
+                                }
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                              />
+                            </Field>
+
+                            <Field label={t.admin.titleEn}>
+                              <input
+                                value={item.titleEn}
+                                onChange={(e) =>
+                                  updateItemField(item.id, 'titleEn', e.target.value)
+                                }
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                              />
+                            </Field>
+
+                            <Field label={t.admin.size}>
+                              <input
+                                value={item.size}
+                                onChange={(e) =>
+                                  updateItemField(item.id, 'size', e.target.value)
+                                }
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                              />
+                            </Field>
+
+                            <Field label={t.admin.conditionId}>
+                              <textarea
+                                value={item.conditionId}
+                                onChange={(e) =>
+                                  updateItemField(item.id, 'conditionId', e.target.value)
+                                }
+                                rows={3}
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                              />
+                            </Field>
+
+                            <Field label={t.admin.conditionEn}>
+                              <textarea
+                                value={item.conditionEn}
+                                onChange={(e) =>
+                                  updateItemField(item.id, 'conditionEn', e.target.value)
+                                }
+                                rows={3}
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                              />
+                            </Field>
+
+                            <Field label={t.admin.before}>
+                              <div className="grid gap-3">
+                                <input
+                                  value={item.before}
+                                  onChange={(e) =>
+                                    updateItemField(item.id, 'before', e.target.value)
+                                  }
+                                  className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                                />
+                                <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-50">
+                                  <ImagePlus className="h-4 w-4" />
+                                  {uploadingProductImage === `${item.id}-before`
+                                    ? 'Uploading...'
+                                    : 'Upload before image'}
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) =>
+                                      handleProductImageUpload(
+                                        item.id,
+                                        'before',
+                                        e.target.files?.[0]
+                                      )
+                                    }
+                                  />
+                                </label>
+                              </div>
+                            </Field>
+
+                            <Field label={t.admin.after}>
+                              <div className="grid gap-3">
+                                <input
+                                  value={item.after}
+                                  onChange={(e) =>
+                                    updateItemField(item.id, 'after', e.target.value)
+                                  }
+                                  className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                                />
+                                <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-50">
+                                  <ImagePlus className="h-4 w-4" />
+                                  {uploadingProductImage === `${item.id}-after`
+                                    ? 'Uploading...'
+                                    : 'Upload after image'}
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) =>
+                                      handleProductImageUpload(
+                                        item.id,
+                                        'after',
+                                        e.target.files?.[0]
+                                      )
+                                    }
+                                  />
+                                </label>
+                              </div>
+                            </Field>
+
+                            <Field label={t.admin.status}>
+                              <select
+                                value={item.status}
+                                onChange={(e) =>
+                                  updateItemField(item.id, 'status', e.target.value)
+                                }
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                              >
+                                <option value="ready">{t.admin.statusReady}</option>
+                                <option value="sold_out">{t.admin.statusSoldOut}</option>
+                              </select>
+                            </Field>
+                          </div>
+
+                          {item.before || item.after ? (
+                            <div className="mt-5 grid gap-4 md:grid-cols-2">
+                              {item.before ? (
+                                <div className="overflow-hidden rounded-[1.5rem] border border-gray-200 bg-white">
+                                  <img
+                                    src={item.before}
+                                    alt={`${item.titleId || item.titleEn || item.code} before`}
+                                    className="h-56 w-full object-cover"
+                                  />
+                                  <div className="border-t border-gray-100 px-4 py-3 text-xs uppercase tracking-[0.2em] text-gray-500">
+                                    Before image
+                                  </div>
+                                </div>
+                              ) : null}
+
+                              {item.after ? (
+                                <div className="overflow-hidden rounded-[1.5rem] border border-gray-200 bg-white">
+                                  <img
+                                    src={item.after}
+                                    alt={`${item.titleId || item.titleEn || item.code} after`}
+                                    className="h-56 w-full object-cover"
+                                  />
+                                  <div className="border-t border-gray-100 px-4 py-3 text-xs uppercase tracking-[0.2em] text-gray-500">
+                                    After image
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : null}
                         </div>
-                      </Field>
-                      <Field label={t.admin.after}>
-                        <div className="grid gap-3">
-                          <input value={item.after} onChange={(e) => updateItemField(item.id, 'after', e.target.value)} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" />
-                          <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-50">
-                            <ImagePlus className="h-4 w-4" />
-                            {uploadingProductImage === `${item.id}-after` ? 'Uploading...' : 'Upload after image'}
-                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProductImageUpload(item.id, 'after', e.target.files?.[0])} />
-                          </label>
-                        </div>
-                      </Field>
-                      <Field label={t.admin.status}>
-                        <select value={item.status} onChange={(e) => updateItemField(item.id, 'status', e.target.value)} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900">
-                          <option value="ready">{t.admin.statusReady}</option>
-                          <option value="sold_out">{t.admin.statusSoldOut}</option>
-                        </select>
-                      </Field>
+                      ))}
                     </div>
+                  </section>
+                ) : null}
 
-                    {(item.before || item.after) ? (
-                      <div className="mt-5 grid gap-4 md:grid-cols-2">
-                        {item.before ? (
-                          <div className="overflow-hidden rounded-[1.5rem] border border-gray-200 bg-white">
-                            <img src={item.before} alt={`${item.titleId || item.titleEn || item.code} before`} className="h-56 w-full object-cover" />
-                            <div className="border-t border-gray-100 px-4 py-3 text-xs uppercase tracking-[0.2em] text-gray-500">Before image</div>
-                          </div>
-                        ) : null}
-                        {item.after ? (
-                          <div className="overflow-hidden rounded-[1.5rem] border border-gray-200 bg-white">
-                            <img src={item.after} alt={`${item.titleId || item.titleEn || item.code} after`} className="h-56 w-full object-cover" />
-                            <div className="border-t border-gray-100 px-4 py-3 text-xs uppercase tracking-[0.2em] text-gray-500">After image</div>
-                          </div>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-[0_20px_80px_rgba(15,23,42,0.05)]">
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.25em] text-gray-500">Section 02</p>
-                  <h2 className="mt-2 text-2xl font-medium text-gray-900">Hero slider</h2>
-                  <p className="mt-2 text-sm text-gray-600">Upload gambar langsung ke Supabase Storage. Pastikan bucket <strong>{heroSlidesBucket}</strong> dibuat sebagai public bucket.</p>
-                </div>
-                <button onClick={addSlide} className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50">
-                  <Plus className="h-4 w-4" />
-                  Tambah slide
-                </button>
-              </div>
-
-              <div className="grid gap-6">
-                {slides.map((slide, index) => (
-                  <div key={slide.id} className="rounded-[2rem] border border-gray-200 bg-gray-50/60 p-6">
-                    <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                {activeSection === 'slider' ? (
+                  <section className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-[0_20px_80px_rgba(15,23,42,0.05)]">
+                    <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                       <div>
-                        <p className="text-xs uppercase tracking-[0.25em] text-gray-500">Hero Slide #{index + 1}</p>
-                        <h3 className="mt-1 text-xl font-medium text-gray-900">{slide.titleId || slide.titleEn || slide.slideKey}</h3>
+                        <p className="text-xs uppercase tracking-[0.25em] text-gray-500">
+                          Section 02
+                        </p>
+                        <h2 className="mt-2 text-2xl font-medium text-gray-900">
+                          Hero slider
+                        </h2>
+                        <p className="mt-2 text-sm text-gray-600">
+                          Upload gambar langsung ke Supabase Storage. Pastikan
+                          bucket <strong>{heroSlidesBucket}</strong> dibuat sebagai
+                          public bucket.
+                        </p>
                       </div>
-                      <button onClick={() => removeSlide(slide)} className="inline-flex items-center gap-2 rounded-full border border-red-200 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50"><Trash2 className="h-4 w-4" />Hapus</button>
+
+                      <button
+                        onClick={addSlide}
+                        className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Tambah slide
+                      </button>
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                      <Field label="Slide key"><input value={slide.slideKey} onChange={(e) => updateSlideField(slide.id, 'slideKey', e.target.value)} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" placeholder="hero-1" /></Field>
-                      <Field label="Title (ID)"><input value={slide.titleId} onChange={(e) => updateSlideField(slide.id, 'titleId', e.target.value)} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" /></Field>
-                      <Field label="Title (EN)"><input value={slide.titleEn} onChange={(e) => updateSlideField(slide.id, 'titleEn', e.target.value)} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" /></Field>
-                      <Field label="Subtitle (ID)"><textarea value={slide.subtitleId} onChange={(e) => updateSlideField(slide.id, 'subtitleId', e.target.value)} rows={4} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" /></Field>
-                      <Field label="Subtitle (EN)"><textarea value={slide.subtitleEn} onChange={(e) => updateSlideField(slide.id, 'subtitleEn', e.target.value)} rows={4} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" /></Field>
-                      <Field label="Image URL">
-                        <div className="grid gap-3">
-                          <input value={slide.image} onChange={(e) => updateSlideField(slide.id, 'image', e.target.value)} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900" />
-                          <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-50">
-                            <ImagePlus className="h-4 w-4" />
-                            {uploadingSlideId === slide.id ? 'Uploading...' : 'Upload ke Storage'}
-                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleSlideImageUpload(slide.id, e.target.files?.[0])} />
-                          </label>
+                    <div className="grid gap-6">
+                      {slides.map((slide, index) => (
+                        <div
+                          key={slide.id}
+                          className="rounded-[2rem] border border-gray-200 bg-gray-50/60 p-6"
+                        >
+                          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.25em] text-gray-500">
+                                Hero Slide #{index + 1}
+                              </p>
+                              <h3 className="mt-1 text-xl font-medium text-gray-900">
+                                {slide.titleId || slide.titleEn || slide.slideKey}
+                              </h3>
+                            </div>
+
+                            <button
+                              onClick={() => removeSlide(slide)}
+                              className="inline-flex items-center gap-2 rounded-full border border-red-200 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Hapus
+                            </button>
+                          </div>
+
+                          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                            <Field label="Slide key">
+                              <input
+                                value={slide.slideKey}
+                                onChange={(e) =>
+                                  updateSlideField(slide.id, 'slideKey', e.target.value)
+                                }
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                                placeholder="hero-1"
+                              />
+                            </Field>
+
+                            <Field label="Title (ID)">
+                              <input
+                                value={slide.titleId}
+                                onChange={(e) =>
+                                  updateSlideField(slide.id, 'titleId', e.target.value)
+                                }
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                              />
+                            </Field>
+
+                            <Field label="Title (EN)">
+                              <input
+                                value={slide.titleEn}
+                                onChange={(e) =>
+                                  updateSlideField(slide.id, 'titleEn', e.target.value)
+                                }
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                              />
+                            </Field>
+
+                            <Field label="Subtitle (ID)">
+                              <textarea
+                                value={slide.subtitleId}
+                                onChange={(e) =>
+                                  updateSlideField(slide.id, 'subtitleId', e.target.value)
+                                }
+                                rows={4}
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                              />
+                            </Field>
+
+                            <Field label="Subtitle (EN)">
+                              <textarea
+                                value={slide.subtitleEn}
+                                onChange={(e) =>
+                                  updateSlideField(slide.id, 'subtitleEn', e.target.value)
+                                }
+                                rows={4}
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                              />
+                            </Field>
+
+                            <Field label="Image URL">
+                              <div className="grid gap-3">
+                                <input
+                                  value={slide.image}
+                                  onChange={(e) =>
+                                    updateSlideField(slide.id, 'image', e.target.value)
+                                  }
+                                  className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                                />
+                                <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-gray-50">
+                                  <ImagePlus className="h-4 w-4" />
+                                  {uploadingSlideId === slide.id
+                                    ? 'Uploading...'
+                                    : 'Upload ke Storage'}
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) =>
+                                      handleSlideImageUpload(slide.id, e.target.files?.[0])
+                                    }
+                                  />
+                                </label>
+                              </div>
+                            </Field>
+
+                            <Field label="Aktif di website?">
+                              <select
+                                value={slide.isActive ? 'yes' : 'no'}
+                                onChange={(e) =>
+                                  updateSlideField(
+                                    slide.id,
+                                    'isActive',
+                                    e.target.value === 'yes'
+                                  )
+                                }
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
+                              >
+                                <option value="yes">Aktif</option>
+                                <option value="no">Nonaktif</option>
+                              </select>
+                            </Field>
+                          </div>
+
+                          {slide.image ? (
+                            <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-gray-200 bg-white">
+                              <img
+                                src={slide.image}
+                                alt={slide.titleId || slide.titleEn || 'Hero Slide'}
+                                className="h-56 w-full object-cover"
+                              />
+                            </div>
+                          ) : null}
                         </div>
-                      </Field>
-                      <Field label="Aktif di website?">
-                        <select value={slide.isActive ? 'yes' : 'no'} onChange={(e) => updateSlideField(slide.id, 'isActive', e.target.value === 'yes')} className="rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900">
-                          <option value="yes">Aktif</option>
-                          <option value="no">Nonaktif</option>
-                        </select>
-                      </Field>
+                      ))}
                     </div>
-
-                    {slide.image ? (
-                      <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-gray-200 bg-white">
-                        <img src={slide.image} alt={slide.titleId || slide.titleEn || 'Hero Slide'} className="h-56 w-full object-cover" />
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            </section>
+                  </section>
+                ) : null}
+              </>
+            )}
           </div>
-        )}
+        </main>
       </div>
     </div>
   )
