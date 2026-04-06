@@ -115,7 +115,7 @@ export const translations = {
       ],
     },
     footer: {
-      copyright: '© 2026 Naturawood. All rights reserved.',
+      copyright: '© 2026 Naturawood x DIKANA KARYA.',
     },
     dialog: {
       dimensions: 'Ukuran',
