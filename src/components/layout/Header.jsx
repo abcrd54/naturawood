@@ -31,23 +31,40 @@ export default function Header({ onOpenMenu, activeSection }) {
           })}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="inline-flex items-center gap-3">
           <button
-            onClick={toggleLang}
-            className="hidden items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-900 transition hover:bg-gray-50 md:inline-flex"
-            aria-label={t.nav.language}
+            type="button"
+            onClick={() => lang !== 'id' && toggleLang()}
+            className="relative transition"
           >
-            <Globe2 className="h-4 w-4" />
-            {lang === 'id' ? 'ID / EN' : 'EN / ID'}
+            <span
+              className={`fi fi-id fis text-lg rounded-sm shadow-sm transition ${
+                lang === 'id' ? 'opacity-100' : 'opacity-60 hover:opacity-100'
+              }`}
+            ></span>
+
+            {lang === 'id' && (
+              <span className="absolute left-0 right-0 -bottom-1 h-[2px] bg-gray-900 rounded-full" />
+            )}
           </button>
+
           <button
-            onClick={onOpenMenu}
-            className="inline-flex rounded-full border border-gray-300 bg-white p-2.5 text-gray-900 md:hidden"
-            aria-label="Open menu"
+            type="button"
+            onClick={() => lang !== 'en' && toggleLang()}
+            className="relative transition"
           >
-            <Menu className="h-4 w-4" />
+            <span
+              className={`fi fi-us fis text-lg rounded-sm shadow-sm transition ${
+                lang === 'en' ? 'opacity-100' : 'opacity-60 hover:opacity-100'
+              }`}
+            ></span>
+
+            {lang === 'en' && (
+              <span className="absolute left-0 right-0 -bottom-1 h-[2px] bg-gray-900 rounded-full" />
+            )}
           </button>
         </div>
+
       </div>
     </header>
   )

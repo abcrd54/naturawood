@@ -62,7 +62,7 @@ export default function ContactSection() {
           <div className="overflow-hidden rounded-[1.5rem]">
             <iframe
               title="Naturawood Google Maps"
-              src="https://www.google.com/maps?q=Polyline%20Indonesia&z=15&output=embed"
+              src="https://www.google.com/maps?q=-6.6261767,110.735663&z=17&output=embed"
               width="100%"
               height="420"
               style={{ border: 0 }}
